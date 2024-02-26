@@ -1,0 +1,26 @@
+app:
+  env: "dev"
+  name: "sambaMW"
+  version: "0.0.0"
+  tmp_directory_path: "./tmp/sambaMW/dirs"
+  tmp_file_path: "./tmp/sambaMW/files"
+http:
+  host: "127.0.0.1"
+  port: "8080"
+
+db:
+  url: "username:password@tcp(localhost:3306)/dbname"
+
+ss:
+  host: "192.168.240.250"
+  port: "445"
+  user: "nobody"
+  password: "nobody"
+  share_name: "public"
+  connection_pool_size: 20
+
+cache:
+  host: "127.0.0.1"
+  port: "6379"
+  password: ""
+  db: 0
