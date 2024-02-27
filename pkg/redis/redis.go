@@ -6,6 +6,7 @@ import (
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/logger/sl"
 	"github.com/redis/go-redis/v9"
 	"log/slog"
+	"time"
 )
 
 type Redis struct {
@@ -13,19 +14,24 @@ type Redis struct {
 	logger *slog.Logger
 }
 
-func New(ctx context.Context, host, port string, logger *slog.Logger) *Redis {
+func New(ctx context.Context, logger *slog.Logger, host, port, password string, db int) (*Redis, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", host, port),
-		Password: "",
-		DB:       0,
+		Password: password,
+		DB:       db,
 	})
 
-	status := client.Ping(ctx)
+	context, cancel := context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+
+	status := client.Ping(context)
 	if status.Err() != nil {
-		return &Redis{}
+		return &Redis{}, status.Err()
 	}
 
-	return &Redis{client: client, logger: logger}
+	logger.Debug("connected to redis", slog.String("host", host), slog.String("port", port))
+
+	return &Redis{client: client, logger: logger}, nil
 }
 
 func (r *Redis) SaveDirs(ctx context.Context, dirs []string) error {
@@ -48,7 +54,7 @@ func (r *Redis) GetDirs(ctx context.Context) ([]string, error) {
 	return dirs, nil
 }
 
-func (r *Redis) DeleteDir(ctx context.Context, dir string) error {
+func (r *Redis) DeleteEmptyDir(ctx context.Context, dir string) error {
 
 	err := r.client.Del(ctx, dir).Err()
 	if err != nil {

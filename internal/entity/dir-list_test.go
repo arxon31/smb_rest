@@ -14,14 +14,19 @@ func TestDirListRequest_Validate(t *testing.T) {
 		expectError error
 	}{
 		{
-			name:        "Empty DirPath",
-			req:         DirListRequest{DirPath: ""},
-			expectError: ErrEmptyFilePath,
+			name:        "Root path with recursive",
+			req:         DirListRequest{DirPath: "", Recursive: true},
+			expectError: ErrRootPath,
 		},
 		{
-			name:        "DirPath equal to /",
+			name:        "Root path without recursive",
+			req:         DirListRequest{DirPath: "", Recursive: false},
+			expectError: nil,
+		},
+		{
+			name:        "Forward Slash",
 			req:         DirListRequest{DirPath: "/"},
-			expectError: ErrRootPath,
+			expectError: ErrForwardSlash,
 		},
 		{
 			name:        "Valid DirPath",

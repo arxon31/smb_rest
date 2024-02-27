@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/config"
 	v1 "git.spbec-mining.ru/arxon31/sambaMW/internal/controller/http/v1"
@@ -8,6 +9,7 @@ import (
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/httpserver"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/logger"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/logger/sl"
+	"git.spbec-mining.ru/arxon31/sambaMW/pkg/redis"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/samba"
 	"github.com/go-chi/chi/v5"
 	"log/slog"
@@ -22,17 +24,32 @@ func Run(cfg *config.Config) {
 
 	l.Info("application starting", slog.String("version", cfg.App.Version))
 
-	smbClient, err := samba.New(l, cfg.SS.Host, cfg.SS.Port, cfg.SS.User, cfg.SS.Password, cfg.SS.ShareName, cfg.SS.ConnectionPoolSize, cfg.App.TmpDirectoryPath, cfg.App.TmpFilePath)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	smbClient, err := samba.New(l,
+		cfg.SS.Host, cfg.SS.Port,
+		cfg.SS.User, cfg.SS.Password,
+		cfg.SS.ShareName,
+		cfg.SS.ConnectionPoolSize,
+		cfg.App.TmpDirectoryPath, cfg.App.TmpFilePath)
 	if err != nil {
 		l.Error("can not create samba client", sl.Err(err))
 		os.Exit(1)
 	}
 
-	saveFileUseCase := usecase.NewFileSaveUsecase(smbClient, nil, l)
+	redisClient, err := redis.New(ctx, l,
+		cfg.Cache.Host, cfg.Cache.Port, cfg.Cache.Password, cfg.Cache.DB)
+	if err != nil {
+		l.Error("can not create redis client", sl.Err(err))
+		os.Exit(1)
+	}
+
+	saveFileUseCase := usecase.NewFileSaveUsecase(smbClient, redisClient, l)
 	downloadFileUseCase := usecase.NewFileGetUsecase(smbClient, l)
 	listDirectoryUseCase := usecase.NewDirectoryListUsecase(smbClient, l)
 	downloadDirectoryUseCase := usecase.NewDirectoryGetUsecase(smbClient, nil, l)
-	createDirectoryUseCase := usecase.NewDirectoryCreateUsecase(smbClient, nil, l)
+	createDirectoryUseCase := usecase.NewDirectoryCreateUsecase(smbClient, redisClient, l)
 
 	router := chi.NewRouter()
 	v1.NewRouter(router, l, saveFileUseCase, downloadFileUseCase, listDirectoryUseCase, downloadDirectoryUseCase, createDirectoryUseCase)

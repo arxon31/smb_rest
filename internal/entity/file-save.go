@@ -21,7 +21,7 @@ func (s *FileSaveRequest) Validate() error {
 
 	dir, file := path.Split(s.FilePath)
 	if dir == "/" {
-		return ErrFilePathIsRoot
+		return ErrForwardSlash
 	}
 	if dir == "" {
 		return ErrEmptyFilePath

@@ -4,6 +4,7 @@ import (
 	"context"
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/entity"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/logger/sl"
+	"log"
 	"log/slog"
 	"slices"
 )
@@ -36,6 +37,7 @@ func (d DirectoryCreateUsecase) CreateDir(ctx context.Context, request entity.Di
 
 	logger.Debug("trying to extract unique paths from FileNode", slog.Any("paths", request.Dirs))
 	paths := request.Dirs.Paths()
+	log.Println(paths)
 
 	var createdDirs []string
 	logger.Debug("trying to create dirs", slog.Any("paths", paths))

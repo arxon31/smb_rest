@@ -10,4 +10,4 @@ test:
 lint:
 	golangci-lint run ./... --timeout 5m
 
-run: build test start
+run: test build start

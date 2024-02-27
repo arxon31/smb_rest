@@ -19,7 +19,7 @@ func TestFileGetRequest_Validate(t *testing.T) {
 		{
 			name:     "FilePathIsRoot",
 			request:  FileGetRequest{FilePath: "/example.txt"},
-			expected: ErrFilePathIsRoot,
+			expected: ErrForwardSlash,
 		},
 		{
 			name:     "EmptyDirectory",

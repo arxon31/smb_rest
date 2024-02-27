@@ -52,9 +52,10 @@ func (s *sessionManager) dial() (Session, error) {
 
 	endpoint := fmt.Sprintf("%s:%s", s.host, s.port)
 
+	logger.Debug("connecting to host via tcp", slog.String("endpoint", endpoint))
 	conn, err := net.Dial("tcp", endpoint)
 	if err != nil {
-		logger.Error("unable to connect to host via tcp", slog.String("endpoint", endpoint), sl.Err(err))
+		logger.Debug("ERROR", sl.Err(err))
 		return Session{}, errUnableConnectToHost
 	}
 
@@ -62,9 +63,10 @@ func (s *sessionManager) dial() (Session, error) {
 		Initiator: &smb2.NTLMInitiator{User: s.user, Password: s.password},
 	}
 
+	logger.Debug("connecting to samba host", slog.String("endpoint", endpoint))
 	smbSession, err := d.Dial(conn)
 	if err != nil {
-		logger.Error("unable to connect to host via smb2.Dialer", slog.String("endpoint", endpoint), sl.Err(err))
+		logger.Debug("ERROR", sl.Err(err))
 		return Session{}, errUnableConnectToHost
 	}
 
@@ -81,6 +83,7 @@ func (s *sessionManager) GetSession() (Session, error) {
 	logger := s.logger.With(slog.String("operation", op))
 
 	if s.poolSize <= 0 {
+		logger.Debug("pool is empty")
 		return Session{}, errNoSessionAvailable
 	}
 
@@ -90,7 +93,7 @@ func (s *sessionManager) GetSession() (Session, error) {
 
 	session, err := s.dial()
 	if err != nil {
-		logger.Error("unable to create session", sl.Err(err))
+		logger.Debug("ERROR", sl.Err(err))
 		return Session{}, err
 	}
 

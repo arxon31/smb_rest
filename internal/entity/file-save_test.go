@@ -24,7 +24,7 @@ func TestFileSaveRequest_Validate(t *testing.T) {
 		{
 			name:     "FilePathIsRoot",
 			request:  FileSaveRequest{FilePath: "/", Content: []byte("test")},
-			expected: ErrFilePathIsRoot,
+			expected: ErrForwardSlash,
 		},
 		{
 			name:     "EmptyDirectoryInFilePath",

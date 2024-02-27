@@ -1,5 +1,7 @@
 package entity
 
+import "strings"
+
 type DirListRequest struct {
 	DirPath   string `json:"path"`
 	Recursive bool   `json:"recursive"`
@@ -7,12 +9,12 @@ type DirListRequest struct {
 
 func (d DirListRequest) Validate() error {
 
-	if d.DirPath == "" {
-		return ErrEmptyFilePath
+	if d.DirPath == "" && d.Recursive {
+		return ErrRootPath
 	}
 
-	if d.DirPath == "/" {
-		return ErrRootPath
+	if d.DirPath != strings.TrimPrefix(d.DirPath, "/") {
+		return ErrForwardSlash
 	}
 
 	return nil

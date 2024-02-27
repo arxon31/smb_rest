@@ -132,14 +132,14 @@ func (r *directoryRoutes) listDir(writer http.ResponseWriter, request *http.Requ
 	err := json.NewDecoder(request.Body).Decode(&model)
 	if err != nil {
 		logger.Error("unable to decode request body", sl.Err(err))
-		http.Error(writer, errInternalError.Error(), http.StatusBadRequest)
+		http.Error(writer, errBadRequest.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = model.Validate()
 	if err != nil {
 		logger.Error("validation error", sl.Err(err))
-		http.Error(writer, err.Error(), http.StatusBadRequest)
+		http.Error(writer, errBadRequest.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -150,7 +150,9 @@ func (r *directoryRoutes) listDir(writer http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	err = json.NewEncoder(writer).Encode(resp)
+	encoder := json.NewEncoder(writer)
+	encoder.SetIndent("", "  ")
+	err = encoder.Encode(resp)
 	if err != nil {
 		logger.Error("unable to encode response", sl.Err(err))
 		http.Error(writer, errInternalError.Error(), http.StatusInternalServerError)

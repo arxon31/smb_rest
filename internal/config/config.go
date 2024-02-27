@@ -15,10 +15,10 @@ var (
 )
 
 type Config struct {
-	App  App  `yaml:"app"`
-	HTTP HTTP `yaml:"http"`
-	DB   DB   `yaml:"db"`
-	SS   SS   `yaml:"ss"`
+	App   App   `yaml:"app"`
+	HTTP  HTTP  `yaml:"http"`
+	Cache Cache `yaml:"cache"`
+	SS    SS    `yaml:"ss"`
 }
 
 // App is application config
@@ -36,9 +36,12 @@ type HTTP struct {
 	Port string `yaml:"port"`
 }
 
-// DB is database dsn config
-type DB struct {
-	URL string `yaml:"url"`
+// Cache is cache dsn config
+type Cache struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
 }
 
 // SS is shared storage config

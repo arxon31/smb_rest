@@ -1,5 +1,9 @@
 package entity
 
+import (
+	"strings"
+)
+
 type FileNode struct {
 	Name   string     `json:"name"`
 	IsDir  bool       `json:"is_dir"`
@@ -10,7 +14,11 @@ type FileNode struct {
 func (t *FileNode) Paths() []string {
 	var paths []string
 
-	t.uniqueFoldersPaths(t.Name, &paths)
+	t.uniqueFoldersPaths("", &paths)
+
+	for i, path := range paths {
+		paths[i] = strings.TrimPrefix(path, "/")
+	}
 
 	return paths
 }

@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"path"
+	"strings"
 )
 
 const (
@@ -166,13 +167,15 @@ func (c *Client) PutFile(ctx context.Context, path string, content []byte) (crea
 }
 
 func (c *Client) makeFileTree(ctx context.Context, fs *smb2.Share, dirPath string) (entity.FileNode, error) {
+	p := strings.Split(dirPath, "/")
+
 	info, err := fs.WithContext(ctx).Lstat(dirPath)
 	if err != nil {
 		return entity.FileNode{}, err
 	}
 
 	files := entity.FileNode{
-		Name:  dirPath,
+		Name:  p[len(p)-1],
 		IsDir: info.IsDir(),
 	}
 	if info.IsDir() {
@@ -191,13 +194,14 @@ func (c *Client) makeFileTree(ctx context.Context, fs *smb2.Share, dirPath strin
 }
 
 func (c *Client) makeFileTreeAll(ctx context.Context, fs *smb2.Share, dirPath string) (entity.FileNode, error) {
+	p := strings.Split(dirPath, "/")
 	info, err := fs.WithContext(ctx).Lstat(dirPath)
 	if err != nil {
 		return entity.FileNode{}, err
 	}
 
 	files := entity.FileNode{
-		Name:  dirPath,
+		Name:  p[len(p)-1],
 		IsDir: info.IsDir(),
 	}
 
@@ -207,17 +211,19 @@ func (c *Client) makeFileTreeAll(ctx context.Context, fs *smb2.Share, dirPath st
 			return entity.FileNode{}, err
 		}
 		for _, entry := range entries {
-			files.Child = append(files.Child, entity.FileNode{
-				Name:  entry.Name(),
-				IsDir: entry.IsDir(),
-			})
 			if entry.IsDir() {
+
 				childPath := path.Join(dirPath, entry.Name())
 				node, err := c.makeFileTreeAll(ctx, fs, childPath)
 				if err != nil {
 					return entity.FileNode{}, err
 				}
 				files.Child = append(files.Child, node)
+			} else {
+				files.Child = append(files.Child, entity.FileNode{
+					Name:  entry.Name(),
+					IsDir: entry.IsDir(),
+				})
 			}
 		}
 	}
