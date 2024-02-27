@@ -16,6 +16,7 @@ import (
 const (
 	maxFileSize = 10 * 1024 * 1024
 	fileKey     = "content"
+	pathKey     = "filepath"
 )
 
 type Saver interface {
@@ -90,7 +91,7 @@ func (r *filesRoutes) getFile(w http.ResponseWriter, req *http.Request) {
 
 func (r *filesRoutes) putFile(w http.ResponseWriter, req *http.Request) {
 	const op = "http.v1.files.putFile()"
-	var model entity.FileSaveRequest
+
 	logger := r.l.With(slog.String("operation", op))
 
 	// Устанавливаем максимальный размер файла
@@ -109,14 +110,13 @@ func (r *filesRoutes) putFile(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Декодируем в структуру модели запроса сам запрос
-	err = json.NewDecoder(req.Body).Decode(&model)
-	if err != nil {
-		logger.Error("unable to decode request body", sl.Err(err))
-		http.Error(w, errInternalError.Error(), http.StatusBadRequest)
+	// Читаем по ключу путь к папке из формы
+	filePath := req.FormValue(pathKey)
+	if filePath == "" {
+		logger.Error("unable to get file path from form", sl.Err(err), slog.String("key", pathKey))
+		http.Error(w, errBadRequest.Error(), http.StatusBadRequest)
 		return
 	}
-	defer req.Body.Close()
 
 	// Читаем содержимое файла и помещаем в структуру модели
 	b := make([]byte, fileHandler.Size)
@@ -126,10 +126,11 @@ func (r *filesRoutes) putFile(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, errInternalError.Error(), http.StatusInternalServerError)
 		return
 	}
-	model.Content = b
 
-	// Соединяем переданный путь к папке и имя файла
-	model.FilePath = path.Join(model.FilePath, fileHandler.Filename)
+	var model = entity.FileSaveRequest{
+		FilePath: path.Join(filePath, fileHandler.Filename),
+		Content:  b,
+	}
 
 	// Валидируем структуру модели
 	err = model.Validate()
@@ -138,8 +139,6 @@ func (r *filesRoutes) putFile(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	logger.Debug("after validation", slog.Any("model", model))
 
 	// Отдаем юзкейсу модель для сохранения, в ответ получаем модель с полным путём к файлу
 	resp, err := r.saver.SaveFile(req.Context(), model)

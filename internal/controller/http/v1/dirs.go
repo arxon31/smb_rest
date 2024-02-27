@@ -39,7 +39,7 @@ func newDirectoryRoutes(router chi.Router, creator DirCreator, getter DirGetter,
 
 	router.Route("/dir", func(router chi.Router) {
 		router.Post("/create", r.createDir)
-		router.Post("/get", r.getDir)
+		router.Post("/download", r.getDir)
 		router.Post("/list", r.listDir)
 	})
 }
@@ -53,14 +53,15 @@ func (r *directoryRoutes) createDir(writer http.ResponseWriter, request *http.Re
 	err := json.NewDecoder(request.Body).Decode(&model)
 	if err != nil {
 		logger.Error("unable to decode request body", sl.Err(err))
-		http.Error(writer, errInternalError.Error(), http.StatusBadRequest)
+		http.Error(writer, errBadRequest.Error(), http.StatusBadRequest)
 		return
 	}
+	defer request.Body.Close()
 
 	err = model.Validate()
 	if err != nil {
 		logger.Error("validation error", sl.Err(err))
-		http.Error(writer, err.Error(), http.StatusBadRequest)
+		http.Error(writer, errBadRequest.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -83,46 +84,6 @@ func (r *directoryRoutes) createDir(writer http.ResponseWriter, request *http.Re
 
 }
 
-func (r *directoryRoutes) getDir(writer http.ResponseWriter, request *http.Request) {
-	const op = "http.v1.directoryRoutes.getDir()"
-	logger := r.l.With(slog.String("operation", op))
-
-	var model entity.DirGetRequest
-
-	err := json.NewDecoder(request.Body).Decode(&model)
-	if err != nil {
-		logger.Error("unable to decode request body", sl.Err(err))
-		http.Error(writer, errInternalError.Error(), http.StatusBadRequest)
-		return
-	}
-
-	err = model.Validate()
-	if err != nil {
-		logger.Error("validation error", sl.Err(err))
-		http.Error(writer, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	resp, err := r.getter.GetDirectory(request.Context(), model)
-	if err != nil {
-		logger.Error("unable to get dir", sl.Err(err))
-		http.Error(writer, errInternalError.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	err = json.NewEncoder(writer).Encode(resp)
-	if err != nil {
-		logger.Error("unable to encode response", sl.Err(err))
-		http.Error(writer, errInternalError.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	http.ServeFile(writer, request, resp.DirPath)
-
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(http.StatusOK)
-}
-
 func (r *directoryRoutes) listDir(writer http.ResponseWriter, request *http.Request) {
 	const op = "http.v1.directoryRoutes.listDir()"
 	logger := r.l.With(slog.String("operation", op))
@@ -135,6 +96,7 @@ func (r *directoryRoutes) listDir(writer http.ResponseWriter, request *http.Requ
 		http.Error(writer, errBadRequest.Error(), http.StatusBadRequest)
 		return
 	}
+	defer request.Body.Close()
 
 	err = model.Validate()
 	if err != nil {
@@ -158,6 +120,47 @@ func (r *directoryRoutes) listDir(writer http.ResponseWriter, request *http.Requ
 		http.Error(writer, errInternalError.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(http.StatusOK)
+}
+
+func (r *directoryRoutes) getDir(writer http.ResponseWriter, request *http.Request) {
+	const op = "http.v1.directoryRoutes.getDir()"
+	logger := r.l.With(slog.String("operation", op))
+
+	var model entity.DirGetRequest
+
+	err := json.NewDecoder(request.Body).Decode(&model)
+	if err != nil {
+		logger.Error("unable to decode request body", sl.Err(err))
+		http.Error(writer, errInternalError.Error(), http.StatusBadRequest)
+		return
+	}
+	defer request.Body.Close()
+
+	err = model.Validate()
+	if err != nil {
+		logger.Error("validation error", sl.Err(err))
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	resp, err := r.getter.GetDirectory(request.Context(), model)
+	if err != nil {
+		logger.Error("unable to get dir", sl.Err(err))
+		http.Error(writer, errInternalError.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(writer).Encode(resp)
+	if err != nil {
+		logger.Error("unable to encode response", sl.Err(err))
+		http.Error(writer, errInternalError.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.ServeFile(writer, request, resp.DirPath)
 
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusOK)

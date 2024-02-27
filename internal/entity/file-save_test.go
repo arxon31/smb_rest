@@ -22,23 +22,13 @@ func TestFileSaveRequest_Validate(t *testing.T) {
 			expected: ErrEmptyContent,
 		},
 		{
-			name:     "FilePathIsRoot",
+			name:     "ForwardSlash",
 			request:  FileSaveRequest{FilePath: "/", Content: []byte("test")},
 			expected: ErrForwardSlash,
 		},
 		{
-			name:     "EmptyDirectoryInFilePath",
-			request:  FileSaveRequest{FilePath: "file", Content: []byte("test")},
-			expected: ErrEmptyFilePath,
-		},
-		{
-			name:     "EmptyFileName",
-			request:  FileSaveRequest{FilePath: "/path/to/", Content: []byte("test")},
-			expected: ErrEmptyFileName,
-		},
-		{
 			name:     "Success",
-			request:  FileSaveRequest{FilePath: "/path/to/file", Content: []byte("test")},
+			request:  FileSaveRequest{FilePath: "path/to/file", Content: []byte("test")},
 			expected: nil,
 		},
 	}

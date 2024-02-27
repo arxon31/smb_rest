@@ -1,10 +1,12 @@
 package entity
 
-import "path"
+import (
+	"strings"
+)
 
 type FileSaveRequest struct {
-	FilePath string `json:"filepath"`
-	Content  []byte `json:"content"`
+	FilePath string
+	Content  []byte
 }
 
 type FileSaveResponse struct {
@@ -19,15 +21,8 @@ func (s *FileSaveRequest) Validate() error {
 		return ErrEmptyContent
 	}
 
-	dir, file := path.Split(s.FilePath)
-	if dir == "/" {
+	if s.FilePath != strings.TrimPrefix(s.FilePath, "/") {
 		return ErrForwardSlash
-	}
-	if dir == "" {
-		return ErrEmptyFilePath
-	}
-	if file == "" {
-		return ErrEmptyFileName
 	}
 
 	return nil

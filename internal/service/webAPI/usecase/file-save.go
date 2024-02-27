@@ -5,6 +5,8 @@ import (
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/entity"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/logger/sl"
 	"log/slog"
+	"path"
+	"strings"
 )
 
 type FileSaver interface {
@@ -43,7 +45,10 @@ func (uc FileSaveUsecase) SaveFile(ctx context.Context, request entity.FileSaveR
 
 	// Обновляем кэш на предмет нового непустого пути если он был пуст
 	logger.Debug("updating cache", slog.String("path", createdPath))
-	err = uc.cache.DeleteEmptyDir(ctx, createdPath)
+
+	dir, _ := path.Split(createdPath)
+	dir = strings.TrimSuffix(dir, "/")
+	err = uc.cache.DeleteEmptyDir(ctx, dir)
 	if err != nil {
 		logger.Error("failed to update cache", sl.Err(err))
 		return entity.FileSaveResponse{}, err
