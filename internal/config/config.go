@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/yaml.v3"
+	"log"
 	"os"
+	"time"
 )
 
 const defaultPath = "./config/config.yaml"
@@ -15,10 +17,11 @@ var (
 )
 
 type Config struct {
-	App   App   `yaml:"app"`
-	HTTP  HTTP  `yaml:"http"`
-	Cache Cache `yaml:"cache"`
-	SS    SS    `yaml:"ss"`
+	App     App     `yaml:"app"`
+	HTTP    HTTP    `yaml:"http"`
+	Cache   Cache   `yaml:"cache"`
+	SS      SS      `yaml:"ss"`
+	Cleaner Cleaner `yaml:"cleaner"`
 }
 
 // App is application config
@@ -54,6 +57,10 @@ type SS struct {
 	ConnectionPoolSize int    `yaml:"connection_pool_size"`
 }
 
+type Cleaner struct {
+	TimeOffset time.Duration `yaml:"time_offset"`
+}
+
 func MustLoad() (*Config, error) {
 	cfg := &Config{}
 
@@ -67,6 +74,8 @@ func MustLoad() (*Config, error) {
 	if err != nil {
 		return cfg, errParseToStruct
 	}
+
+	log.Println(cfg)
 
 	return cfg, nil
 }

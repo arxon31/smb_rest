@@ -10,7 +10,7 @@ import (
 type Cache interface {
 	SaveDirs(ctx context.Context, dirs []string) error
 	GetDirs(ctx context.Context) ([]string, error)
-	DeleteDir(ctx context.Context, dir string) error
+	DeleteEmptyDir(ctx context.Context, dir string) error
 }
 
 type DirectoryLister interface {
@@ -46,7 +46,7 @@ func (u *Updater) update(ctx context.Context) []string {
 			continue
 		}
 		if !node.IsEmpty() {
-			err = u.cache.DeleteDir(ctx, dir)
+			err = u.cache.DeleteEmptyDir(ctx, dir)
 			if err != nil {
 				u.logger.Error("failed to delete dir from cache", sl.Err(err))
 			}

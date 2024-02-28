@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/config"
 	v1 "git.spbec-mining.ru/arxon31/sambaMW/internal/controller/http/v1"
+	"git.spbec-mining.ru/arxon31/sambaMW/internal/service/cleaner"
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/service/webAPI/usecase"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/httpserver"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/logger"
@@ -44,6 +45,10 @@ func Run(cfg *config.Config) {
 		l.Error("can not create redis client", sl.Err(err))
 		os.Exit(1)
 	}
+
+	cleaner := cleaner.NewCleanerService(l, cfg.App.TmpDirectoryPath, cfg.App.TmpFilePath, cfg.Cleaner.TimeOffset)
+
+	go cleaner.Start(ctx)
 
 	saveFileUseCase := usecase.NewFileSaveUsecase(smbClient, redisClient, l)
 	downloadFileUseCase := usecase.NewFileGetUsecase(smbClient, l)

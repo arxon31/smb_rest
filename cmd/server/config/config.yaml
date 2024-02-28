@@ -6,7 +6,7 @@ app:
   tmp_file_path: "./tmp/sambaMW/files"
 
 http:
-  host: "127.0.0.1"
+  host: "0.0.0.0"
   port: "8080"
 
 ss:
@@ -22,3 +22,6 @@ cache:
   port: "6379"
   password: ""
   db: 0
+
+cleaner:
+  time_offset: 24h
