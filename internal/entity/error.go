@@ -9,4 +9,5 @@ var (
 	ErrEmptyFileName   = errors.New("empty file name")
 	ErrPathsIsNotEqual = errors.New("paths are not equal")
 	ErrRootPath        = errors.New("root path detected")
+	ErrInvalidUser     = errors.New("invalid user")
 )
