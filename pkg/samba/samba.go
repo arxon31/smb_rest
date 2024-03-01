@@ -48,7 +48,6 @@ func New(logger *slog.Logger, host, port string, user, password, shareName strin
 	return &Client{sm: cm, shareName: shareName, logger: logger, tmpDirectoriesPath: tmpDirectoriesPath, tmpFilesPath: tmpFilesPath}, nil
 
 }
-
 func (c *Client) ListDir(ctx context.Context, dirPath string, recursive bool) (entity.FileNode, error) {
 	session, err := c.sm.GetSession()
 	if err != nil {

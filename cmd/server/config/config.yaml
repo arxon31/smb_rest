@@ -1,5 +1,5 @@
 app:
-  env: "dev"
+  env: "prod"
   name: "sambaMW"
   version: "0.0.0"
   tmp_directory_path: "./tmp/sambaMW/dirs"

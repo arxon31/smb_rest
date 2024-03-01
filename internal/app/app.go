@@ -46,7 +46,7 @@ func Run(cfg *config.Config) {
 		os.Exit(1)
 	}
 
-	cleaner := cleaner.NewCleanerService(l, cfg.App.TmpDirectoryPath, cfg.App.TmpFilePath, cfg.Cleaner.TimeOffset)
+	cleaner := cleaner.New(l, cfg.App.TmpDirectoryPath, cfg.App.TmpFilePath, cfg.Cleaner.TimeOffset)
 
 	go cleaner.Start(ctx)
 

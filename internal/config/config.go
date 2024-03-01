@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/yaml.v3"
-	"log"
 	"os"
 	"time"
 )
@@ -74,8 +73,6 @@ func MustLoad() (*Config, error) {
 	if err != nil {
 		return cfg, errParseToStruct
 	}
-
-	log.Println(cfg)
 
 	return cfg, nil
 }

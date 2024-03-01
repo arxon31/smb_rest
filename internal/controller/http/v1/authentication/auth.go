@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const defaultTokenLength = 32
+
 type AuthService struct {
 	token string
 }
@@ -51,15 +53,13 @@ func (m *AuthService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b := make([]byte, 32)
-
-	_, err = rand.Read(b)
+	token, err := m.generateToken(defaultTokenLength)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	m.token = hex.EncodeToString(b)
+	m.token = token
 
 	http.SetCookie(w, &http.Cookie{
 		Name:    "X-Auth-Token",
@@ -68,4 +68,15 @@ func (m *AuthService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (m *AuthService) generateToken(length int) (string, error) {
+	b := make([]byte, length)
+
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(b), nil
 }

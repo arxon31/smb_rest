@@ -15,7 +15,7 @@ type Cleaner struct {
 	timeOffset                    time.Duration
 }
 
-func NewCleanerService(logger *slog.Logger, tmpDirectoryPath, tmpFilePath string, timeOffset time.Duration) *Cleaner {
+func New(logger *slog.Logger, tmpDirectoryPath, tmpFilePath string, timeOffset time.Duration) *Cleaner {
 	return &Cleaner{
 		logger:           logger,
 		tmpDirectoryPath: tmpDirectoryPath,

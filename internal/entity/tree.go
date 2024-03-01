@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"path"
 	"strings"
 )
 
@@ -23,16 +24,17 @@ func (t *FileNode) Paths() []string {
 	return paths
 }
 
-func (t *FileNode) uniqueFoldersPaths(path string, paths *[]string) {
-	path += "/" + t.Name
+func (t *FileNode) uniqueFoldersPaths(p string, paths *[]string) {
+	
+	p = path.Join(p, t.Name)
 	if len(t.Child) == 0 {
-		*paths = append(*paths, path)
+		*paths = append(*paths, p)
 		return
 	}
 
 	for _, child := range t.Child {
 
-		child.uniqueFoldersPaths(path, paths)
+		child.uniqueFoldersPaths(p, paths)
 	}
 }
 
