@@ -1,3 +1,4 @@
 .idea
-/cmd/server/server
-/cmd/server/tmp
+app/cmd/server/server
+app/cmd/server/tmp
+samba

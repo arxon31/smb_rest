@@ -1,0 +1,27 @@
+---
+
+services:
+  smbrest:
+    image: smbrest:local
+    container_name: smbrest
+    ports:
+      - 8080:8080
+    depends_on:
+    - redis
+    - samba
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - 6379:6379
+
+  samba:
+    image: dperson/samba
+    container_name: samba
+    ports:
+      - 445:445
+    volumes:
+      - ./samba/smb.conf:/etc/samba/smb.conf
+      - ./samba/share:/srv/samba/share
+    command: [-p,-u "user;password",  ]

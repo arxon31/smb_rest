@@ -43,6 +43,11 @@ func NewSessionManager(logger *slog.Logger, host, port string, user, password st
 	}
 
 	log.Debug("created session manager", slog.Any("pool size", poolSize))
+
+	_, err := mngr.dial()
+	if err != nil {
+		return nil, err
+	}
 	return mngr, nil
 }
 

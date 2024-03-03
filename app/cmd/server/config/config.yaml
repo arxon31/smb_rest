@@ -1,5 +1,5 @@
 app:
-  env: "prod"
+  env: "dev"
   name: "sambaMW"
   version: "0.0.0"
   tmp_directory_path: "./tmp/sambaMW/dirs"
@@ -10,15 +10,15 @@ http:
   port: "8080"
 
 ss:
-  host: "192.168.240.250"
+  host: "samba"
   port: "445"
-  user: "nobody"
-  password: "nobody"
-  share_name: "public"
+  user: "user"
+  password: "password"
+  share_name: "share"
   connection_pool_size: 20
 
 cache:
-  host: "127.0.0.1"
+  host: "redis"
   port: "6379"
   password: ""
   db: 0

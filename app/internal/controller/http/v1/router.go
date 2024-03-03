@@ -15,7 +15,6 @@ func NewRouter(
 	uploadFile usecase.FileSaveUsecase,
 	downloadFile usecase.FileGetUsecase,
 	listDirectory usecase.DirectoryListUsecase,
-	getDirectory usecase.DirectoryGetUsecase,
 	createDirectory usecase.DirectoryCreateUsecase) {
 
 	auth := authentication.NewAuthService()
@@ -27,7 +26,7 @@ func NewRouter(
 
 	router.Route("/api/v1", func(router chi.Router) {
 		router.Use(auth.Auth)
-		newDirectoryRoutes(router, createDirectory, getDirectory, listDirectory, l)
+		newDirectoryRoutes(router, createDirectory, listDirectory, l)
 		newFilesRoutes(router, uploadFile, downloadFile, l)
 	})
 

@@ -53,11 +53,10 @@ func Run(cfg *config.Config) {
 	saveFileUseCase := usecase.NewFileSaveUsecase(smbClient, redisClient, l)
 	downloadFileUseCase := usecase.NewFileGetUsecase(smbClient, l)
 	listDirectoryUseCase := usecase.NewDirectoryListUsecase(smbClient, l)
-	downloadDirectoryUseCase := usecase.NewDirectoryGetUsecase(smbClient, nil, l)
 	createDirectoryUseCase := usecase.NewDirectoryCreateUsecase(smbClient, redisClient, l)
 
 	router := chi.NewRouter()
-	v1.NewRouter(router, l, saveFileUseCase, downloadFileUseCase, listDirectoryUseCase, downloadDirectoryUseCase, createDirectoryUseCase)
+	v1.NewRouter(router, l, saveFileUseCase, downloadFileUseCase, listDirectoryUseCase, createDirectoryUseCase)
 
 	server := httpserver.New(router, httpserver.Addr(cfg.HTTP.Host, cfg.HTTP.Port))
 
