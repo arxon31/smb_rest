@@ -82,9 +82,11 @@ func (c *Client) CreateDir(ctx context.Context, dirPath string) (createdDirPath 
 	}
 	defer fs.Umount()
 
-	err = fs.WithContext(ctx).MkdirAll(dirPath, permissions)
-	if err != nil {
-		return "", err
+	for _, dir := range dirs {
+		err = fs.WithContext(ctx).MkdirAll(dirPath, permissions)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return dirPath, nil
