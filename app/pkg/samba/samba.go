@@ -2,6 +2,7 @@ package samba
 
 import (
 	"context"
+	"fmt"
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/entity"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/samba/sessions"
 	"github.com/hirochachacha/go-smb2"
@@ -69,27 +70,29 @@ func (c *Client) ListDir(ctx context.Context, dirPath string, recursive bool) (e
 
 }
 
-func (c *Client) CreateDir(ctx context.Context, dirPath string) (createdDirPath string, err error) {
+func (c *Client) CreateDir(ctx context.Context, dirs []string) (createdDirs []string, err error) {
+	createdDirs = make([]string, len(dirs))
 	session, err := c.sm.GetSession()
 	if err != nil {
-		return "", err
+		return createdDirs, err
 	}
 	defer c.sm.ReleaseSession(session)
 
 	fs, err := session.Mount(c.shareName)
 	if err != nil {
-		return "", err
+		return createdDirs, err
 	}
 	defer fs.Umount()
 
-	for _, dir := range dirs {
-		err = fs.WithContext(ctx).MkdirAll(dirPath, permissions)
+	for i, dir := range dirs {
+		err = fs.WithContext(ctx).MkdirAll(dir, permissions)
 		if err != nil {
-			return "", err
+			return createdDirs, fmt.Errorf("failed to create dir %s: %w", dir, err)
 		}
+		createdDirs[i] = dir
 	}
 
-	return dirPath, nil
+	return createdDirs, nil
 }
 
 func (c *Client) GetDirectory(ctx context.Context, dirPath string, saveAs string) (tempDirPath string, err error) {

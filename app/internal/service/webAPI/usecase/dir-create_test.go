@@ -43,11 +43,21 @@ func TestCreateDir(t *testing.T) {
 		},
 	}
 
-	tests := []struct {
-		name     string
+	type fields struct {
+		creator *usecase.MockDirectoryCreator
+		cache   *usecase.MockEmptyDirsCache
+	}
+
+	type args struct {
 		request  entity.DirCreateRequest
 		response entity.DirCreateResponse
-		err      error
+	}
+
+	tests := []struct {
+		name    string
+		prepare func(f *fields)
+		args    args
+		err     error
 	}{
 		{
 			name:     "Successful creation",
@@ -92,7 +102,7 @@ func TestCreateDir(t *testing.T) {
 			cacher := usecase.NewMockEmptyDirsCache(ctrl)
 			paths := tt.request.Dirs.Paths()
 
-			creator.EXPECT().CreateDir(testContext, paths[0]).Return(paths[0], nil)
+			creator.EXPECT().CreateDir(testContext, paths).Return(paths, nil)
 			cacher.EXPECT().SaveDirs(testContext, tt.response.Dirs.Paths()).Return(nil)
 
 			usecase := NewDirectoryCreateUsecase(creator, cacher, slog.New(slog.NewTextHandler(os.Stdout, nil)))
@@ -104,4 +114,8 @@ func TestCreateDir(t *testing.T) {
 
 		})
 	}
+}
+
+func TestCreateDir_Validate(t *testing.T) {
+	// TODO
 }

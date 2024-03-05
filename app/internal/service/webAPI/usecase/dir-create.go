@@ -4,13 +4,13 @@ import (
 	"context"
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/entity"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/logger/sl"
-	"log"
 	"log/slog"
 	"slices"
 )
 
+//go:generate mockgen -source=dir-create.go -destination=mocks/dir-create-mock.go -package=mocks
 type DirectoryCreator interface {
-	CreateDir(ctx context.Context, dirPath string) (createdDirPath string, err error)
+	CreateDir(ctx context.Context, dirs []string) (createdDirs []string, err error)
 }
 
 type EmptyDirsCache interface {
@@ -37,18 +37,14 @@ func (d DirectoryCreateUsecase) CreateDir(ctx context.Context, request entity.Di
 
 	logger.Debug("trying to extract unique paths from FileNode", slog.Any("paths", request.Dirs))
 	paths := request.Dirs.Paths()
-	log.Println(paths)
 
-	var createdDirs []string
 	logger.Debug("trying to create dirs", slog.Any("paths", paths))
-	for _, path := range paths {
-		createdDir, err := d.creator.CreateDir(ctx, path)
-		if err != nil {
-			logger.Error("failed to create dir", slog.String("dir", path), sl.Err(err))
-			return entity.DirCreateResponse{}, err
-		}
-		createdDirs = append(createdDirs, createdDir)
+	createdDirs, err := d.creator.CreateDir(ctx, paths)
+	if err != nil {
+		logger.Error("failed to create dir", sl.Err(err))
+		return entity.DirCreateResponse{}, err
 	}
+
 	logger.Debug("created dirs",
 		slog.Bool("all-success", slices.Equal(createdDirs, paths)))
 
