@@ -31,8 +31,8 @@ func NewDirectoryCreateUsecase(creator DirectoryCreator, cache EmptyDirsCache, l
 	}
 }
 
-func (d DirectoryCreateUsecase) CreateDir(ctx context.Context, request entity.DirCreateRequest) (response entity.DirCreateResponse, err error) {
-	const op = "usecase.DirectoryCreateUsecase.CreateDir()"
+func (d DirectoryCreateUsecase) DirectoryCreate(ctx context.Context, request entity.DirCreateRequest) (response entity.DirCreateResponse, err error) {
+	const op = "usecase.DirectoryCreateUsecase.DirectoryCreate()"
 	logger := d.l.With(slog.String("operation", op))
 
 	logger.Debug("trying to extract unique paths from FileNode", slog.Any("paths", request.Dirs))

@@ -11,7 +11,7 @@ import (
 )
 
 type DirCreator interface {
-	CreateDir(ctx context.Context, request entity.DirCreateRequest) (response entity.DirCreateResponse, err error)
+	DirectoryCreate(ctx context.Context, request entity.DirCreateRequest) (response entity.DirCreateResponse, err error)
 }
 
 type DirLister interface {
@@ -58,7 +58,7 @@ func (r *directoryRoutes) createDir(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	resp, err := r.creator.CreateDir(request.Context(), model)
+	resp, err := r.creator.DirectoryCreate(request.Context(), model)
 	if err != nil {
 		logger.Error("unable to create dir", sl.Err(err))
 		http.Error(writer, errInternalError.Error(), http.StatusInternalServerError)

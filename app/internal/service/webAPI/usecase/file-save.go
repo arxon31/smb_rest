@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+//go:generate mockgen -source=file-save.go -destination=mocks/file-save-mock.go -package=usecase
 type FileSaver interface {
 	PutFile(ctx context.Context, path string, content []byte) (createdFilePath string, err error)
 }

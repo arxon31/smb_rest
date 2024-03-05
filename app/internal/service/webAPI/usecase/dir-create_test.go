@@ -2,46 +2,46 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/entity"
 	usecase "git.spbec-mining.ru/arxon31/sambaMW/internal/service/webAPI/usecase/mocks"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 	"log/slog"
-	"os"
 	"testing"
 )
 
 const (
-	tmpPath   = "./tmp"
 	tmpDir    = "tmp"
 	tmpSubDir = "subdir"
 )
 
+var request = entity.DirCreateRequest{
+	Dirs: entity.FileNode{
+		Name:  tmpDir,
+		IsDir: true,
+		Child: []entity.FileNode{
+			{
+				Name:  tmpSubDir,
+				IsDir: true,
+			},
+		},
+	},
+}
+
+var response = entity.DirCreateResponse{
+	Dirs: entity.FileNode{
+		Name:  tmpDir,
+		IsDir: true,
+		Child: []entity.FileNode{
+			{
+				Name:  tmpSubDir,
+				IsDir: true,
+			},
+		},
+	},
+}
+
 func TestCreateDir(t *testing.T) {
-	var validRequest = entity.DirCreateRequest{
-		Dirs: entity.FileNode{
-			IsDir: true,
-			Name:  tmpDir,
-			Child: []entity.FileNode{
-				{
-					IsDir: true,
-					Name:  tmpSubDir,
-				},
-			},
-		},
-	}
-	var validResponse = entity.DirCreateResponse{
-		Dirs: entity.FileNode{
-			IsDir: true,
-			Name:  tmpDir,
-			Child: []entity.FileNode{
-				{
-					IsDir: true,
-					Name:  tmpSubDir,
-				},
-			},
-		},
-	}
 
 	type fields struct {
 		creator *usecase.MockDirectoryCreator
@@ -54,43 +54,83 @@ func TestCreateDir(t *testing.T) {
 	}
 
 	tests := []struct {
+		fields  fields
 		name    string
 		prepare func(f *fields)
 		args    args
-		err     error
+		wantErr bool
 	}{
 		{
-			name:     "Successful creation",
-			request:  validRequest,
-			response: validResponse,
-			err:      nil,
+			name: "Success",
+			fields: fields{
+				creator: usecase.NewMockDirectoryCreator(gomock.NewController(t)),
+				cache:   usecase.NewMockEmptyDirsCache(gomock.NewController(t)),
+			},
+			prepare: func(f *fields) {
+				f.creator.EXPECT().CreateDir(gomock.Any(), gomock.Any()).Return([]string{}, nil)
+				f.cache.EXPECT().SaveDirs(gomock.Any(), gomock.Any()).Return(nil)
+			}, args: args{
+				request:  request,
+				response: response,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Error with creating dirs",
+			fields: fields{
+				creator: usecase.NewMockDirectoryCreator(gomock.NewController(t)),
+				cache:   usecase.NewMockEmptyDirsCache(gomock.NewController(t)),
+			},
+			prepare: func(f *fields) {
+				f.creator.EXPECT().CreateDir(gomock.Any(), gomock.Any()).Return([]string{}, fmt.Errorf("some error"))
+			},
+			args: args{
+				request:  request,
+				response: response,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Error with saving dirs to cache",
+			fields: fields{
+				creator: usecase.NewMockDirectoryCreator(gomock.NewController(t)),
+				cache:   usecase.NewMockEmptyDirsCache(gomock.NewController(t)),
+			},
+			prepare: func(f *fields) {
+				f.creator.EXPECT().CreateDir(gomock.Any(), gomock.Any()).Return([]string{}, nil)
+				f.cache.EXPECT().SaveDirs(gomock.Any(), gomock.Any()).Return(fmt.Errorf("some error"))
+			},
+			args: args{
+				request:  request,
+				response: response,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Error with validation response",
+			fields: fields{
+				creator: usecase.NewMockDirectoryCreator(gomock.NewController(t)),
+				cache:   usecase.NewMockEmptyDirsCache(gomock.NewController(t)),
+			},
+			prepare: func(f *fields) {
+				f.creator.EXPECT().CreateDir(gomock.Any(), gomock.Any()).Return([]string{}, nil)
+				f.cache.EXPECT().SaveDirs(gomock.Any(), gomock.Any()).Return(nil)
+			},
+			args: args{
+				request: entity.DirCreateRequest{Dirs: entity.FileNode{
+					Name:  "",
+					IsDir: true,
+					Child: []entity.FileNode{},
+				}},
+				response: entity.DirCreateResponse{Dirs: entity.FileNode{
+					Name:  "",
+					IsDir: true,
+					Child: []entity.FileNode{},
+				}},
+			},
+			wantErr: true,
 		},
 	}
-
-	// Test when paths are empty
-	//t.Run("EmptyPaths", func(t *testing.T) {
-	//	// Test logic here
-	//})
-	//
-	//// Test when all directories are successfully created
-	//t.Run("AllDirsCreatedSuccessfully", func(t *testing.T) {
-	//	// Test logic here
-	//})
-	//
-	//// Test when some directories fail to be created
-	//t.Run("SomeDirsFailedToCreate", func(t *testing.T) {
-	//	// Test logic here
-	//})
-	//
-	//// Test when cache.SaveDirs returns an error
-	//t.Run("CacheSaveDirsError", func(t *testing.T) {
-	//	// Test logic here
-	//})
-	//
-	//// Test when response validation fails
-	//t.Run("ResponseValidationFailure", func(t *testing.T) {
-	//	// Test logic here
-	//})
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -98,24 +138,20 @@ func TestCreateDir(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			creator := usecase.NewMockDirectoryCreator(ctrl)
-			cacher := usecase.NewMockEmptyDirsCache(ctrl)
-			paths := tt.request.Dirs.Paths()
+			tt.prepare(&tt.fields)
 
-			creator.EXPECT().CreateDir(testContext, paths).Return(paths, nil)
-			cacher.EXPECT().SaveDirs(testContext, tt.response.Dirs.Paths()).Return(nil)
+			uCase := DirectoryCreateUsecase{
+				creator: tt.fields.creator,
+				cache:   tt.fields.cache,
+				l:       slog.Default(),
+			}
 
-			usecase := NewDirectoryCreateUsecase(creator, cacher, slog.New(slog.NewTextHandler(os.Stdout, nil)))
+			_, err := uCase.DirectoryCreate(testContext, tt.args.request)
 
-			resp, err := usecase.CreateDir(testContext, tt.request)
-
-			assert.Equal(t, tt.err, err)
-			assert.Equal(t, tt.response, resp)
-
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DirectoryCreate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 		})
 	}
-}
-
-func TestCreateDir_Validate(t *testing.T) {
-	// TODO
 }

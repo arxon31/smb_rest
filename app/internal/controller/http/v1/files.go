@@ -24,7 +24,7 @@ type Saver interface {
 }
 
 type Getter interface {
-	GetFile(ctx context.Context, request entity.FileGetRequest) (response entity.FileGetResponse, err error)
+	DownloadFile(ctx context.Context, request entity.FileGetRequest) (response entity.FileGetResponse, err error)
 }
 
 type filesRoutes struct {
@@ -65,7 +65,7 @@ func (r *filesRoutes) getFile(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	resp, err := r.getter.GetFile(req.Context(), model)
+	resp, err := r.getter.DownloadFile(req.Context(), model)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			logger.Error("file not found", sl.Err(err))

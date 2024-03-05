@@ -7,6 +7,7 @@ import (
 	"log/slog"
 )
 
+//go:generate mockgen -source=file-get.go -destination=mocks/file-get-mock.go -package=mocks
 type FileDownloader interface {
 	GetFile(ctx context.Context, path string) (filename string, filesize int64, err error)
 }
@@ -23,8 +24,8 @@ func NewFileGetUsecase(downloader FileDownloader, logger *slog.Logger) FileGetUs
 	}
 }
 
-func (f FileGetUsecase) GetFile(ctx context.Context, request entity.FileGetRequest) (response entity.FileGetResponse, err error) {
-	const op = "usecase.FileGetUsecase.GetFile()"
+func (f FileGetUsecase) DownloadFile(ctx context.Context, request entity.FileGetRequest) (response entity.FileGetResponse, err error) {
+	const op = "usecase.FileGetUsecase.DownloadFile()"
 	logger := f.l.With(slog.String("operation", op))
 
 	logger.Debug("trying to get file", slog.String("path", request.FilePath))

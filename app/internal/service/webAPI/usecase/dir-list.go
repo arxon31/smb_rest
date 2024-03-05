@@ -7,6 +7,7 @@ import (
 	"log/slog"
 )
 
+//go:generate mockgen -source=dir-list.go -destination=mocks/dir-list-mock.go -package=mocks
 type DirectoriesViewer interface {
 	ListDir(ctx context.Context, dirPath string, recursive bool) (entity.FileNode, error)
 }
