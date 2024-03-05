@@ -1,4 +1,4 @@
 .idea
 app/cmd/server/server
 app/cmd/server/tmp
-samba
+samba/share
