@@ -6,6 +6,8 @@ import (
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/config"
 	v1 "git.spbec-mining.ru/arxon31/sambaMW/internal/controller/http/v1"
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/service/cleaner"
+	"git.spbec-mining.ru/arxon31/sambaMW/internal/service/notifier"
+	"git.spbec-mining.ru/arxon31/sambaMW/internal/service/updater"
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/service/webAPI/usecase"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/httpserver"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/logger"
@@ -50,6 +52,11 @@ func Run(cfg *config.Config) {
 
 	go cleaner.Start(ctx)
 
+	httpNotifier := notifier.NewNotifier(cfg.Notifier.Endpoint, l)
+	redisUpdater := updater.NewUpdater(redisClient, smbClient, httpNotifier, l)
+
+	go redisUpdater.Start(ctx)
+
 	saveFileUseCase := usecase.NewFileSaveUsecase(smbClient, redisClient, l)
 	downloadFileUseCase := usecase.NewFileGetUsecase(smbClient, l)
 	listDirectoryUseCase := usecase.NewDirectoryListUsecase(smbClient, l)
@@ -73,6 +80,11 @@ func Run(cfg *config.Config) {
 	err = server.Shutdown()
 	if err != nil {
 		l.Error("http server shutdown error", sl.Err(err))
+	}
+
+	err = redisClient.Close()
+	if err != nil {
+		l.Error("redis client close error", sl.Err(err))
 	}
 
 }

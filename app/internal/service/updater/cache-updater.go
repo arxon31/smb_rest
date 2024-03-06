@@ -1,10 +1,11 @@
-package cache_updater
+package updater
 
 import (
 	"context"
 	"git.spbec-mining.ru/arxon31/sambaMW/internal/entity"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/logger/sl"
 	"log/slog"
+	"time"
 )
 
 type Cache interface {
@@ -17,17 +18,44 @@ type DirectoryLister interface {
 	ListDir(ctx context.Context, dirPath string, recursive bool) (entity.FileNode, error)
 }
 
+type Notifier interface {
+	Notify(ctx context.Context, dirs []string) error
+}
+
 type Updater struct {
 	cache      Cache
 	dirsLister DirectoryLister
+	notifier   Notifier
 	logger     *slog.Logger
 }
 
-func NewUpdater(cache Cache, dirsLister DirectoryLister) *Updater {
+func NewUpdater(cache Cache, dirsLister DirectoryLister, notifier Notifier, logger *slog.Logger) *Updater {
 	return &Updater{
 		cache:      cache,
 		dirsLister: dirsLister,
+		notifier:   notifier,
+		logger:     logger,
 	}
+}
+
+func (u *Updater) Start(ctx context.Context) {
+	timer := time.NewTicker(5 * time.Minute)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-timer.C:
+			updatedDirs := u.update(ctx)
+			if len(updatedDirs) > 0 {
+				err := u.notifier.Notify(ctx, updatedDirs)
+				if err != nil {
+					u.logger.Error("failed to notify", sl.Err(err))
+				}
+			}
+		}
+	}
+
 }
 
 func (u *Updater) update(ctx context.Context) []string {

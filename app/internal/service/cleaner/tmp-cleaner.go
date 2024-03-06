@@ -3,7 +3,6 @@ package cleaner
 import (
 	"context"
 	"git.spbec-mining.ru/arxon31/sambaMW/pkg/logger/sl"
-	"github.com/go-co-op/gocron/v2"
 	"log/slog"
 	"os"
 	"time"
@@ -25,46 +24,24 @@ func New(logger *slog.Logger, tmpDirectoryPath, tmpFilePath string, timeOffset t
 }
 
 func (c *Cleaner) Start(ctx context.Context) {
-	scheduler, err := gocron.NewScheduler()
-	if err != nil {
-		c.logger.Error("failed to create scheduler", sl.Err(err))
-		return
-	}
-	defer scheduler.Shutdown()
+	ticker := time.NewTicker(24 * time.Hour)
+	defer ticker.Stop()
 
-	definition := gocron.DailyJob(
-		1,
-		gocron.NewAtTimes(gocron.NewAtTime(23, 0, 0)))
-
-	cleanDirTask := gocron.NewTask(func() {
-		err := c.cleanDirs()
-		if err != nil {
-			c.logger.Error("failed to clean dirs", sl.Err(err))
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			err := c.cleanDirs()
+			if err != nil {
+				c.logger.Error("failed to clean dirs", sl.Err(err))
+			}
+			err = c.cleanFiles()
+			if err != nil {
+				c.logger.Error("failed to clean files", sl.Err(err))
+			}
 		}
-	})
-
-	cleanFilesTask := gocron.NewTask(func() {
-		err := c.cleanFiles()
-		if err != nil {
-			c.logger.Error("failed to clean files", sl.Err(err))
-		}
-	})
-
-	_, err = scheduler.NewJob(definition, cleanDirTask)
-	if err != nil {
-		c.logger.Error("failed to create clean dir job", sl.Err(err))
-		return
 	}
-
-	_, err = scheduler.NewJob(definition, cleanFilesTask)
-	if err != nil {
-		c.logger.Error("failed to create clean files job", sl.Err(err))
-		return
-	}
-
-	scheduler.Start()
-
-	<-ctx.Done()
 }
 
 func (c *Cleaner) cleanDirs() error {

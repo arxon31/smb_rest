@@ -64,3 +64,7 @@ func (r *Redis) DeleteEmptyDir(ctx context.Context, dir string) error {
 
 	return nil
 }
+
+func (r *Redis) Close() error {
+	return r.client.Close()
+}

@@ -13,4 +13,4 @@ test:
 lint:
 	golangci-lint run ./... --timeout 5m
 
-run: test build docker start
+run: test build start

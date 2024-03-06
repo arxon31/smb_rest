@@ -16,11 +16,12 @@ var (
 )
 
 type Config struct {
-	App     App     `yaml:"app"`
-	HTTP    HTTP    `yaml:"http"`
-	Cache   Cache   `yaml:"cache"`
-	SS      SS      `yaml:"ss"`
-	Cleaner Cleaner `yaml:"cleaner"`
+	App      App      `yaml:"app"`
+	HTTP     HTTP     `yaml:"http"`
+	Cache    Cache    `yaml:"cache"`
+	SS       SS       `yaml:"ss"`
+	Cleaner  Cleaner  `yaml:"cleaner"`
+	Notifier Notifier `yaml:"notifier"`
 }
 
 // App is application config
@@ -58,6 +59,10 @@ type SS struct {
 
 type Cleaner struct {
 	TimeOffset time.Duration `yaml:"time_offset"`
+}
+
+type Notifier struct {
+	Endpoint string `yaml:"endpoint"`
 }
 
 func MustLoad() (*Config, error) {

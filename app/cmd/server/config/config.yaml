@@ -25,3 +25,6 @@ cache:
 
 cleaner:
   time_offset: 24h
+
+notifier:
+  endpoint: "localhost:9090"
