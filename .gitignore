@@ -1,0 +1,4 @@
+.idea
+app/cmd/server/server
+app/cmd/server/tmp
+samba/share

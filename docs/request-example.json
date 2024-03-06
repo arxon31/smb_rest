@@ -1,0 +1,66 @@
+{
+  "path": {
+    "name": "root_directory",
+    "is_dir": true,
+    "child": [
+      {
+        "name": "sub_directory1",
+        "is_dir": true,
+        "child": [
+          {
+            "name": "sub_directory1_sub1",
+            "is_dir": true,
+            "child": [
+              {
+                "name": "file2.txt",
+                "is_dir": false
+              }
+            ]
+          },
+          {
+            "name": "sub_directory1_sub2",
+            "is_dir": true,
+            "child": [
+              {
+                "name": "file2.txt",
+                "is_dir": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "sub_directory2",
+        "is_dir": true,
+        "child": [
+          {
+            "name": "sub_directory2_sub1",
+            "is_dir": true,
+            "child": [
+              {
+                "name": "file2.txt",
+                "is_dir": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "sub_directory3",
+        "is_dir": true,
+        "child": [
+          {
+            "name": "sub_directory3_sub1",
+            "is_dir": true,
+            "child": [
+              {
+                "name": "file2.txt",
+                "is_dir": false
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
